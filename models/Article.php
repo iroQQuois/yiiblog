@@ -2,7 +2,7 @@
 
 namespace app\models;
 
-use Yii;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "article".
@@ -21,7 +21,7 @@ use Yii;
  * @property ArticleTag[] $articleTags
  * @property Comment[] $comments
  */
-class Article extends \yii\db\ActiveRecord
+class Article extends ActiveRecord
 {
     /**
      * {@inheritdoc}
@@ -64,23 +64,31 @@ class Article extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * Gets query for [[ArticleTags]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getArticleTags()
+    public function saveImage($filename)
     {
-        return $this->hasMany(ArticleTag::className(), ['article_id' => 'id']);
+        $this->image = $filename;
+        return $this->save(false);
     }
 
-    /**
-     * Gets query for [[Comments]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getComments()
+    public function getImage()
     {
-        return $this->hasMany(Comment::className(), ['article_id' => 'id']);
+        if ($this->image)
+        {
+            return'/uploads/' . $this->image;
+        }
+
+        return '/no-image.png';
+    }
+
+    public function deleteImage()
+    {
+        $imageUploadMode = new ImageUpload();
+        $imageUploadMode->deleteCurrentImage($this->image);
+    }
+
+    public function beforeDelete()
+    {
+        $this->deleteImage();
+        return parent::beforeDelete();
     }
 }
